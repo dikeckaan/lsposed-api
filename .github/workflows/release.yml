@@ -42,7 +42,7 @@ jobs:
         mkdir -p release
         cd ~/.m2/repository/
         zip -r $GITHUB_WORKSPACE/release/library.zip .
-    
+
     - name: Get latest tag
       id: get_tag
       run: |
@@ -76,9 +76,11 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload Library to Release
-      uses: actions/upload-release-asset@v1
+      uses: actions/upload-release-asset@v2
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./release/library.zip
         asset_name: library.zip
         asset_content_type: application/zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
