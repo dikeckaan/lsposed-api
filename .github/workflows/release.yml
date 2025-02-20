@@ -1,8 +1,8 @@
-name: Android CI
+name: Release Build
 
 on:
   push:
-    branches: [ "hookhandle" ]
+    branches: [ "master" ]
   workflow_dispatch:
 
 permissions:
@@ -37,14 +37,12 @@ jobs:
         ORG_GRADLE_PROJECT_signingKey: ${{ secrets.maven_pgp_signingKey }}
         ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.maven_pgp_signingPassword }}
 
-    - name: Upload library
-      uses: actions/upload-artifact@v4
-      with:
-        name: library
-        path: ~/.m2/repository/
-        include-hidden-files: true
-        if-no-files-found: error
-
+    - name: Archive Library
+      run: |
+        mkdir -p release
+        cd ~/.m2/repository/
+        zip -r $GITHUB_WORKSPACE/release/library.zip .
+    
     - name: Get latest tag
       id: get_tag
       run: |
@@ -66,6 +64,7 @@ jobs:
         git push origin ${{ env.version }}
 
     - name: Create GitHub Release
+      id: create_release
       uses: actions/create-release@v1
       with:
         tag_name: ${{ env.version }}
@@ -75,3 +74,11 @@ jobs:
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Library to Release
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./release/library.zip
+        asset_name: library.zip
+        asset_content_type: application/zip
